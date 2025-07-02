@@ -1,4 +1,10 @@
-// Configuração do Firebase - Credenciais Reais
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, set, get, child, push, update } from "firebase/database";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDaEzGFvaCM5sMMwTrwno3eJe4vugMIVsI",
   authDomain: "livrosmax-d53b5.firebaseapp.com",
@@ -10,13 +16,14 @@ const firebaseConfig = {
   measurementId: "G-SS12VLP57R"
 };
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const auth = firebase.auth();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+const analytics = getAnalytics(app);
 
-// Classe para gerenciar dados do Firebase
-class FirebaseManager {
+// Classe para gerenciar dados do Firebase - Versão Moderna v9+
+class FirebaseManagerV9 {
   
   // Autenticação de usuário
   async loginUser(email, password, userType) {
@@ -47,7 +54,7 @@ class FirebaseManager {
         createdAt: new Date().toISOString()
       };
 
-      await database.ref(`users/${userId}`).set(userData);
+      await set(ref(database, `users/${userId}`), userData);
       
       // Criar dados iniciais baseado no tipo de usuário
       if (userType === 'student') {
@@ -67,8 +74,9 @@ class FirebaseManager {
   async getUserData(email) {
     try {
       const userId = email.replace(/[.#$[\]]/g, '_');
-      const snapshot = await database.ref(`users/${userId}`).once('value');
-      return snapshot.val();
+      const dbRef = ref(database);
+      const snapshot = await get(child(dbRef, `users/${userId}`));
+      return snapshot.exists() ? snapshot.val() : null;
     } catch (error) {
       console.error('Erro ao obter dados do usuário:', error);
       return null;
@@ -132,7 +140,7 @@ class FirebaseManager {
       }
     };
 
-    await database.ref(`students/${userId}`).set(studentData);
+    await set(ref(database, `students/${userId}`), studentData);
   }
 
   // Criar dados iniciais para professor
@@ -170,14 +178,15 @@ class FirebaseManager {
       ]
     };
 
-    await database.ref(`teachers/${userId}`).set(teacherData);
+    await set(ref(database, `teachers/${userId}`), teacherData);
   }
 
   // Obter dados do estudante
   async getStudentData(userId) {
     try {
-      const snapshot = await database.ref(`students/${userId}`).once('value');
-      return snapshot.val();
+      const dbRef = ref(database);
+      const snapshot = await get(child(dbRef, `students/${userId}`));
+      return snapshot.exists() ? snapshot.val() : null;
     } catch (error) {
       console.error('Erro ao obter dados do estudante:', error);
       return null;
@@ -187,8 +196,9 @@ class FirebaseManager {
   // Obter dados do professor
   async getTeacherData(userId) {
     try {
-      const snapshot = await database.ref(`teachers/${userId}`).once('value');
-      return snapshot.val();
+      const dbRef = ref(database);
+      const snapshot = await get(child(dbRef, `teachers/${userId}`));
+      return snapshot.exists() ? snapshot.val() : null;
     } catch (error) {
       console.error('Erro ao obter dados do professor:', error);
       return null;
@@ -198,7 +208,7 @@ class FirebaseManager {
   // Atualizar nota do estudante
   async updateStudentGrade(studentId, subject, gradeType, value) {
     try {
-      await database.ref(`students/${studentId}/grades/${subject}/${gradeType}`).set(value);
+      await set(ref(database, `students/${studentId}/grades/${subject}/${gradeType}`), value);
       return { success: true };
     } catch (error) {
       console.error('Erro ao atualizar nota:', error);
@@ -209,8 +219,9 @@ class FirebaseManager {
   // Adicionar nova atividade
   async addActivity(userId, activity) {
     try {
-      const newActivityKey = database.ref(`students/${userId}/activities/${activity.priority}`).push().key;
-      await database.ref(`students/${userId}/activities/${activity.priority}/${newActivityKey}`).set(activity);
+      const activitiesRef = ref(database, `students/${userId}/activities/${activity.priority}`);
+      const newActivityRef = push(activitiesRef);
+      await set(newActivityRef, activity);
       return { success: true };
     } catch (error) {
       console.error('Erro ao adicionar atividade:', error);
@@ -233,6 +244,15 @@ class FirebaseManager {
   // Inicializar dados de demonstração
   async initializeDemoData() {
     try {
+      console.log('🔄 Inicializando dados de demonstração...');
+      
+      // Verificar se já existem dados
+      const existingData = await this.checkExistingData();
+      if (existingData) {
+        console.log('✅ Dados já existem no Firebase');
+        return;
+      }
+
       // Usuários de demonstração
       const demoUsers = [
         {
@@ -259,7 +279,7 @@ class FirebaseManager {
       ];
 
       for (const user of demoUsers) {
-        await database.ref(`users/${user.id}`).set(user);
+        await set(ref(database, `users/${user.id}`), user);
         
         if (user.type === 'student') {
           await this.createInitialStudentData(user.id);
@@ -268,15 +288,91 @@ class FirebaseManager {
         }
       }
 
-      console.log('Dados de demonstração inicializados com sucesso!');
+      console.log('✅ Dados de demonstração inicializados com sucesso!');
     } catch (error) {
-      console.error('Erro ao inicializar dados de demonstração:', error);
+      console.error('❌ Erro ao inicializar dados de demonstração:', error);
+      
+      // Verificar se é erro de permissão
+      if (error.code === 'PERMISSION_DENIED') {
+        this.showPermissionError();
+      } else {
+        console.error('Erro desconhecido:', error);
+      }
+    }
+  }
+
+  // Verificar se dados já existem
+  async checkExistingData() {
+    try {
+      const dbRef = ref(database);
+      const snapshot = await get(child(dbRef, 'users'));
+      return snapshot.exists();
+    } catch (error) {
+      console.log('Não foi possível verificar dados existentes:', error.message);
+      return false;
+    }
+  }
+
+  // Mostrar erro de permissão com instruções
+  showPermissionError() {
+    const errorMessage = `
+🚨 ERRO DE PERMISSÃO DO FIREBASE
+
+Para usar o sistema, você precisa configurar as regras do Realtime Database:
+
+1. Acesse: https://console.firebase.google.com/
+2. Selecione o projeto: livrosmax-d53b5
+3. Vá para "Realtime Database"
+4. Clique na aba "Regras"
+5. Substitua o conteúdo por:
+
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+
+6. Clique em "Publicar"
+7. Recarregue esta página
+
+⚠️ Estas são regras abertas para desenvolvimento.
+Em produção, use regras mais restritivas.
+    `;
+    
+    console.error(errorMessage);
+    
+    // Mostrar modal de erro se estivermos no navegador
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        alert('❌ ERRO DE PERMISSÃO DO FIREBASE\n\nVerifique o console (F12) para instruções detalhadas de como corrigir.');
+      }, 1000);
     }
   }
 }
 
+// Exportar para uso em módulos
+export { 
+  app, 
+  database, 
+  auth, 
+  analytics, 
+  FirebaseManagerV9,
+  ref,
+  set,
+  get,
+  child,
+  push,
+  update
+};
+
+// Para compatibilidade com versão não-modular
+window.firebaseApp = app;
+window.firebaseDatabase = database;
+window.firebaseAuth = auth;
+
 // Instanciar o gerenciador do Firebase
-const firebaseManager = new FirebaseManager();
+const firebaseManager = new FirebaseManagerV9();
 
 // Verificar se é a primeira vez e inicializar dados de demonstração
 window.addEventListener('load', () => {
@@ -286,3 +382,6 @@ window.addEventListener('load', () => {
     localStorage.setItem('firstRun', 'false');
   }
 });
+
+// Exportar para compatibilidade
+window.firebaseManager = firebaseManager;
