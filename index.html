@@ -1,1 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal do Estudante</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: rgba(255, 255, 255, 0.2);
+        }
 
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            margin: 0 5px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-gradient);
+            transform: translateY(-2px);
+        }
+
+        .btn-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            padding: 12px 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-gradient:hover::before {
+            left: 100%;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-modern {
+            background: var(--card-bg);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card-modern:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .grade-badge {
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .grade-excellent { background: var(--success-gradient); color: white; }
+        .grade-good { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; }
+        .grade-average { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #8b4513; }
+        .grade-poor { background: var(--secondary-gradient); color: white; }
+
+        .activity-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .activity-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .activity-urgent { border-left-color: #ff6b6b; }
+        .activity-normal { border-left-color: #4ecdc4; }
+        .activity-low { border-left-color: #95e1d3; }
+
+        .stats-card {
+            text-align: center;
+            padding: 25px;
+            color: white;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: blur(10px);
+            z-index: -1;
+        }
+
+        .form-floating label {
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 10%;
+            animation-delay: 5s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 10%;
+            left: 20%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(30px) rotate(240deg); }
+        }
+
+        .section-hidden {
+            display: none;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .glass-card {
+                margin: 10px 0;
+            }
+            
+            .stats-card {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape">
+            <i class="fas fa-graduation-cap fa-3x"></i>
+        </div>
+        <div class="shape">
+            <i class="fas fa-book fa-2x"></i>
+        </div>
+        <div class="shape">
+            <i class="fas fa-star fa-2x"></i>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card p-5">
+                        <div class="text-center mb-4">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <h2 class="text-white mb-0">Terminal do Estudante</h2>
+                            <p class="text-white-50">Sistema Escolar Integrado</p>
+                        </div>
+                        
+                        <form id="loginForm">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="loginEmail" placeholder="email@escola.edu.br" required>
+                                <label for="loginEmail">Email</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Senha" required>
+                                <label for="loginPassword">Senha</label>
+                            </div>
+                            <div class="mb-3">
+                                <select class="form-select" id="userType" style="border-radius: 15px;">
+                                    <option value="student">Estudante</option>
+                                    <option value="teacher">Professor</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-gradient w-100 mb-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                            </button>
+                            <button type="button" class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="fas fa-user-plus me-2"></i>Cadastrar
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-white-50">
+                                Demo: aluno@escola.br / prof@escola.br | Senha: 123456<br>
+                                <strong>Administrador: admin | Senha: 123456</strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content glass-card">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registerModalLabel">Cadastro de Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <form id="registerForm">
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="registerEmail" placeholder="email@escola.edu.br" required>
+                <label for="registerEmail">Email</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="registerPassword" placeholder="Senha" required>
+                <label for="registerPassword">Senha</label>
+              </div>
+              <div class="mb-3">
+                <select class="form-select" id="registerUserType" style="border-radius: 15px;">
+                  <option value="student">Estudante</option>
+                  <option value="teacher">Professor</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-gradient w-100">Cadastrar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="section-hidden">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Terminal do Estudante
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                                <i class="fas fa-home me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item student-only">
+                            <a class="nav-link" href="#" onclick="showSection('grades')">
+                                <i class="fas fa-chart-line me-1"></i>Notas
+                            </a>
+                        </li>
+                        <li class="nav-item student-only">
+                            <a class="nav-link" href="#" onclick="showSection('schedule')">
+                                <i class="fas fa-calendar me-1"></i>Agenda
+                            </a>
+                        </li>
+                        <li class="nav-item teacher-only section-hidden">
+                            <a class="nav-link" href="#" onclick="showSection('subjects')">
+                                <i class="fas fa-book me-1"></i>Disciplinas
+                            </a>
+                        </li>
+                        <li class="nav-item teacher-only section-hidden">
+                            <a class="nav-link" href="#" onclick="showSection('grading')">
+                                <i class="fas fa-edit me-1"></i>Lançar Notas
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="navbar-nav">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i>
+                                <span id="userName">Usuário</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="container-fluid py-4">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="text-white mb-0">Bem-vindo ao Terminal do Estudante</h1>
+                    <p class="text-white-50">Acompanhe seu progresso acadêmico</p>
+                </div>
+            </div>
+
+            <!-- Student Dashboard -->
+            <div id="studentDashboard">
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--primary-gradient);">
+                            <i class="fas fa-chart-line fa-2x mb-3"></i>
+                            <h3 id="avgGrade">8.5</h3>
+                            <p class="mb-0">Média Geral</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--success-gradient);">
+                            <i class="fas fa-book fa-2x mb-3"></i>
+                            <h3 id="totalSubjects">8</h3>
+                            <p class="mb-0">Disciplinas</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--secondary-gradient);">
+                            <i class="fas fa-tasks fa-2x mb-3"></i>
+                            <h3 id="pendingTasks">3</h3>
+                            <p class="mb-0">Atividades Pendentes</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <i class="fas fa-calendar-check fa-2x mb-3" style="color: #667eea;"></i>
+                            <h3 style="color: #667eea;">95%</h3>
+                            <p class="mb-0" style="color: #667eea;">Frequência</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="glass-card p-4">
+                            <h4 class="text-white mb-4">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Próximas Atividades
+                            </h4>
+                            <div id="recentActivities">
+                                <div class="activity-item activity-urgent">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-2">Prova de Matemática</h6>
+                                            <p class="text-muted mb-1">Funções quadráticas e logarítmicas</p>
+                                            <small class="text-danger">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Amanhã às 14:00
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-danger">Urgente</span>
+                                    </div>
+                                </div>
+
+                                <div class="activity-item activity-normal">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-2">Trabalho de História</h6>
+                                            <p class="text-muted mb-1">Revolução Industrial no Brasil</p>
+                                            <small class="text-info">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Sexta-feira
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-info">Normal</span>
+                                    </div>
+                                </div>
+
+                                <div class="activity-item activity-low">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-2">Seminário de Biologia</h6>
+                                            <p class="text-muted mb-1">Sistema circulatório</p>
+                                            <small class="text-success">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Próxima semana
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-success">Baixa</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 mb-4">
+                        <div class="glass-card p-4">
+                            <h4 class="text-white mb-4">
+                                <i class="fas fa-trophy me-2"></i>
+                                Desempenho por Matéria
+                            </h4>
+                            <div class="space-y-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-white">Matemática</span>
+                                    <span class="grade-badge grade-excellent">9.2</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-white">Português</span>
+                                    <span class="grade-badge grade-good">8.7</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-white">História</span>
+                                    <span class="grade-badge grade-good">8.1</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-white">Física</span>
+                                    <span class="grade-badge grade-average">7.5</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-white">Química</span>
+                                    <span class="grade-badge grade-average">7.8</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Dashboard -->
+            <div id="teacherDashboard" class="section-hidden">
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--primary-gradient);">
+                            <i class="fas fa-chalkboard-teacher fa-2x mb-3"></i>
+                            <h3 id="teacherSubjects">3</h3>
+                            <p class="mb-0">Disciplinas</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--success-gradient);">
+                            <i class="fas fa-users fa-2x mb-3"></i>
+                            <h3 id="totalStudents">127</h3>
+                            <p class="mb-0">Total de Alunos</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: var(--secondary-gradient);">
+                            <i class="fas fa-clipboard-check fa-2x mb-3"></i>
+                            <h3 id="gradesToReview">15</h3>
+                            <p class="mb-0">Notas para Revisar</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <i class="fas fa-chart-pie fa-2x mb-3" style="color: #667eea;"></i>
+                            <h3 style="color: #667eea;">8.3</h3>
+                            <p class="mb-0" style="color: #667eea;">Média da Turma</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grades Section -->
+        <div id="gradesSection" class="container-fluid py-4 section-hidden">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="text-white mb-0">Notas e Desempenho</h1>
+                    <p class="text-white-50">Acompanhe seu progresso acadêmico detalhado</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card-modern p-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Disciplina</th>
+                                        <th>1º Bimestre</th>
+                                        <th>2º Bimestre</th>
+                                        <th>3º Bimestre</th>
+                                        <th>4º Bimestre</th>
+                                        <th>Média Final</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gradesTable">
+                                    <tr>
+                                        <td><strong>Matemática</strong></td>
+                                        <td>9.0</td>
+                                        <td>8.5</td>
+                                        <td>9.5</td>
+                                        <td>9.2</td>
+                                        <td><span class="grade-badge grade-excellent">9.1</span></td>
+                                        <td><span class="badge bg-success">Aprovado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Português</strong></td>
+                                        <td>8.2</td>
+                                        <td>8.8</td>
+                                        <td>8.5</td>
+                                        <td>9.0</td>
+                                        <td><span class="grade-badge grade-good">8.6</span></td>
+                                        <td><span class="badge bg-success">Aprovado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>História</strong></td>
+                                        <td>7.5</td>
+                                        <td>8.0</td>
+                                        <td>8.2</td>
+                                        <td>8.5</td>
+                                        <td><span class="grade-badge grade-good">8.1</span></td>
+                                        <td><span class="badge bg-success">Aprovado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Física</strong></td>
+                                        <td>7.0</td>
+                                        <td>7.5</td>
+                                        <td>7.8</td>
+                                        <td>7.7</td>
+                                        <td><span class="grade-badge grade-average">7.5</span></td>
+                                        <td><span class="badge bg-warning">Em recuperação</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Química</strong></td>
+                                        <td>8.0</td>
+                                        <td>7.5</td>
+                                        <td>7.8</td>
+                                        <td>8.0</td>
+                                        <td><span class="grade-badge grade-average">7.8</span></td>
+                                        <td><span class="badge bg-success">Aprovado</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div id="scheduleSection" class="container-fluid py-4 section-hidden">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="text-white mb-0">Agenda de Atividades</h1>
+                    <p class="text-white-50">Organize seu tempo e não perca nenhum prazo</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card-modern p-4">
+                        <h4 class="mb-4">
+                            <i class="fas fa-calendar-week me-2"></i>
+                            Esta Semana
+                        </h4>
+                        <div id="weeklyActivities">
+                            <div class="activity-item activity-urgent">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Prova de Matemática</h6>
+                                        <p class="text-muted mb-1">Capítulos 5 e 6 - Funções e Logaritmos</p>
+                                        <small class="text-danger">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Terça-feira, 14:00 - Sala 205
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-danger mb-2">Urgente</span>
+                                        <br>
+                                        <small class="text-muted">Prof. Silva</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item activity-normal">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Entrega de Trabalho - História</h6>
+                                        <p class="text-muted mb-1">Revolução Industrial e seus impactos</p>
+                                        <small class="text-info">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Sexta-feira, até 23:59
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info mb-2">Trabalho</span>
+                                        <br>
+                                        <small class="text-muted">Prof. Santos</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item activity-low">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Seminário de Biologia</h6>
+                                        <p class="text-muted mb-1">Sistema Circulatório - Apresentação em grupo</p>
+                                        <small class="text-success">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Próxima semana
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success mb-2">Baixa</span>
+                                        <br>
+                                        <small class="text-muted">Prof. Oliveira</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="card-modern p-4">
+                        <h4 class="mb-4">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Próximos Meses
+                        </h4>
+                        <div id="monthlyActivities">
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Férias de Julho</h6>
+                                        <p class="text-muted mb-1">De 10 a 24 de Julho</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Próximo mês
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary mb-2">Baixa prioridade</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Reunião de Pais</h6>
+                                        <p class="text-muted mb-1">Discutir desempenho e atividades</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            15 de Agosto, 19:00
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary mb-2">Baixa prioridade</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Prova Final de Matemática</h6>
+                                        <p class="text-muted mb-1">Revisão geral para a prova</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            30 de Novembro, 14:00
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary mb-2">Baixa prioridade</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicione antes do fechamento do </body> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const userType = document.getElementById('userType').value;
+    if (userType === 'teacher') {
+        window.location.href = 'professor.html';
+    } else if (userType === 'student') {
+        window.location.href = 'aluno.html';
+    } else {
+        // Caso queira manter o fluxo antigo para outros tipos
+        document.getElementById('loginSection').classList.add('section-hidden');
+        document.getElementById('mainApp').classList.remove('section-hidden');
+    }
+});
+</script>
+</body>
+</html>
