@@ -81,336 +81,504 @@
 </head>
 <body>
     <div class="container-fluid py-4">
-        <h1 class="section-title"><i class="fas fa-chalkboard-teacher me-2"></i>Terminal do Professor</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="section-title"><i class="fas fa-chalkboard-teacher me-2"></i>Terminal do Professor</h1>
+            <div>
+                <span class="badge bg-primary me-2" id="teacherName">Carregando...</span>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard do Professor -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i>
+                    <h3 id="subjectsCount">0</h3>
+                    <p class="mb-0">Disciplinas</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3 id="studentsCount">0</h3>
+                    <p class="mb-0">Total de Alunos</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                    <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                    <h3 id="gradesToReview">0</h3>
+                    <p class="mb-0">Notas para Revisar</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+                    <i class="fas fa-chart-pie fa-2x mb-2"></i>
+                    <h3 id="classAverage">0.0</h3>
+                    <p class="mb-0">Média da Turma</p>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
-            <!-- Cadastro de Disciplina -->
-            <div class="col-lg-3 mb-4">
+            <!-- Gestão de Disciplinas -->
+            <div class="col-lg-4 mb-4">
                 <div class="glass-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-book me-2"></i>Nova Disciplina</h5>
-                    <form id="formDisciplina">
+                    <h5 class="mb-3 text-white"><i class="fas fa-book me-2"></i>Minhas Disciplinas</h5>
+                    
+                    <form id="formDisciplina" class="mb-4">
                         <div class="mb-3">
                             <input type="text" class="form-control" id="disciplinaNome" placeholder="Nome da Disciplina" required>
                         </div>
                         <div class="mb-3">
-                            <input type="text" class="form-control" id="disciplinaTurma" placeholder="Turma (ex: 1A, 2B)" required>
+                            <input type="text" class="form-control" id="disciplinaTurma" placeholder="Turma (ex: 9A, 9B)" required>
                         </div>
-                        <button type="submit" class="btn btn-gradient w-100">Cadastrar Disciplina</button>
-                    </form>
-                    <hr class="my-3">
-                    <h6 class="text-white">Disciplinas Cadastradas:</h6>
-                    <ul id="listaDisciplinas" class="list-group"></ul>
-                </div>
-            </div>
-            <!-- Cadastro de Aluno -->
-            <div class="col-lg-3 mb-4">
-                <div class="glass-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-user-plus me-2"></i>Novo Aluno</h5>
-                    <div class="mb-3">
-                        <button type="button" class="btn btn-outline-primary w-100 mb-2" onclick="document.getElementById('inputImportAlunos').click()">
-                            <i class="fas fa-file-import me-2"></i>Importar lista de alunos (.xls)
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="disciplinaAlunos" placeholder="Número de Alunos" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-gradient w-100">
+                            <i class="fas fa-plus me-1"></i>Adicionar Disciplina
                         </button>
-                        <input type="file" id="inputImportAlunos" accept=".xls,.xlsx" style="display:none" />
+                    </form>
+
+                    <div id="disciplinasList">
+                        <!-- Lista de disciplinas carregada dinamicamente -->
                     </div>
-                    <form id="formAluno">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="alunoNome" placeholder="Nome do Aluno" required>
-                        </div>
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="alunoTurma" placeholder="Turma (ex: 1A, 2B)" required>
-                        </div>
-                        <button type="submit" class="btn btn-gradient w-100">Cadastrar Aluno</button>
-                    </form>
-                    <hr class="my-3">
-                    <h6 class="text-white">Alunos Cadastrados:</h6>
-                    <ul id="listaAlunos" class="list-group"></ul>
                 </div>
             </div>
-            <!-- Cadastro de Atividade -->
-            <div class="col-lg-3 mb-4">
+
+            <!-- Gestão de Alunos -->
+            <div class="col-lg-4 mb-4">
                 <div class="glass-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tasks me-2"></i>Nova Atividade</h5>
-                    <form id="formAtividade">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="atividadeNome" placeholder="Nome da Atividade" required>
-                        </div>
-                        <div class="mb-3">
-                            <select class="form-select" id="atividadeDisciplina" required>
-                                <option value="">Selecione a Disciplina</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <input type="date" class="form-control" id="atividadeData" required>
-                        </div>
-                        <button type="submit" class="btn btn-gradient w-100">Cadastrar Atividade</button>
-                    </form>
-                    <hr class="my-3">
-                    <h6 class="text-white">Atividades Cadastradas:</h6>
-                    <ul id="listaAtividades" class="list-group"></ul>
+                    <h5 class="mb-3 text-white"><i class="fas fa-users me-2"></i>Alunos por Turma</h5>
+                    
+                    <div class="mb-3">
+                        <select class="form-select" id="selectTurmaAlunos" onchange="loadStudentsByClass()">
+                            <option value="">Selecione uma Turma</option>
+                        </select>
+                    </div>
+
+                    <div id="studentsList">
+                        <!-- Lista de alunos carregada dinamicamente -->
+                    </div>
                 </div>
             </div>
-            <!-- Lançar Notas -->
-            <div class="col-lg-3 mb-4">
+
+            <!-- Lançamento de Notas -->
+            <div class="col-lg-4 mb-4">
                 <div class="glass-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-edit me-2"></i>Lançar Nota</h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-edit me-2"></i>Lançar Notas</h5>
+                    
                     <form id="formNota">
                         <div class="mb-3">
-                            <select class="form-select" id="selectTurma" required>
+                            <select class="form-select" id="selectTurmaNota" onchange="updateStudentOptions()" required>
                                 <option value="">Selecione a Turma</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <select class="form-select" id="selectAluno" required>
+                            <select class="form-select" id="selectAlunoNota" required>
                                 <option value="">Selecione o Aluno</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <select class="form-select" id="selectDisciplina" required>
+                            <select class="form-select" id="selectDisciplinaNota" required>
                                 <option value="">Selecione a Disciplina</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <select class="form-select" id="selectAtividade" required>
-                                <option value="">Selecione a Atividade</option>
+                            <select class="form-select" id="selectBimestre" required>
+                                <option value="">Selecione o Bimestre</option>
+                                <option value="bim1">1º Bimestre</option>
+                                <option value="bim2">2º Bimestre</option>
+                                <option value="bim3">3º Bimestre</option>
+                                <option value="bim4">4º Bimestre</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <input type="number" class="form-control" id="notaValor" placeholder="Nota" min="0" max="10" step="0.1" required>
+                            <input type="number" class="form-control" id="notaValor" placeholder="Nota (0-10)" min="0" max="10" step="0.1" required>
                         </div>
-                        <button type="submit" class="btn btn-gradient w-100">Lançar Nota</button>
+                        <button type="submit" class="btn btn-gradient w-100">
+                            <i class="fas fa-save me-1"></i>Lançar Nota
+                        </button>
                     </form>
-                    <hr class="my-3">
-                    <h6 class="text-white">Notas Lançadas:</h6>
-                    <ul id="listaNotas" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notas Pendentes -->
+        <div class="row">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-4 text-white"><i class="fas fa-clipboard-list me-2"></i>Notas Pendentes de Revisão</h5>
+                    <div id="pendingGradesList">
+                        <!-- Lista de notas pendentes carregada dinamicamente -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
     <script>
-    // Configuração do Firebase
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_AUTH_DOMAIN",
-      databaseURL: "SUA_DATABASE_URL",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_STORAGE_BUCKET",
-      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
+        let currentUser = null;
+        let teacherData = null;
 
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+        // Verificar autenticação ao carregar a página
+        window.addEventListener('load', async () => {
+            currentUser = firebaseManager.getCurrentUser();
+            
+            if (!currentUser || currentUser.type !== 'teacher') {
+                alert('Acesso negado. Redirecionando para login.');
+                window.location.href = 'index.html';
+                return;
+            }
 
-    // Dados em memória (pode ser adaptado para localStorage)
-    let disciplinas = [];
-    let alunos = [];
-    let atividades = [];
-    let notas = [];
-
-    // Função para obter todas as turmas cadastradas
-    function getTurmas() {
-        const turmasDisc = disciplinas.map(d => d.turma);
-        const turmasAlu = alunos.map(a => a.turma);
-        return [...new Set([...turmasDisc, ...turmasAlu])].filter(Boolean);
-    }
-
-    function atualizarListas() {
-        // Disciplinas
-        const listaDisciplinas = document.getElementById('listaDisciplinas');
-        listaDisciplinas.innerHTML = '';
-        disciplinas.forEach((d) => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${d.nome} (${d.turma})`;
-            listaDisciplinas.appendChild(li);
+            await loadTeacherData();
         });
 
-        // Alunos
-        const listaAlunos = document.getElementById('listaAlunos');
-        listaAlunos.innerHTML = '';
-        alunos.forEach((a) => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            // Mostra matrícula, número e nome
-            li.textContent = `${a.matricula || ''} ${a.numero || ''} ${a.nome} (${a.turma})`;
-            listaAlunos.appendChild(li);
-        });
-
-        // Atividades
-        const listaAtividades = document.getElementById('listaAtividades');
-        listaAtividades.innerHTML = '';
-        atividades.forEach((atv) => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${atv.nome} (${atv.disciplina}) - ${atv.data}`;
-            listaAtividades.appendChild(li);
-        });
-
-        // Select de turmas
-        const selectTurma = document.getElementById('selectTurma');
-        selectTurma.innerHTML = '<option value="">Selecione a Turma</option>';
-        getTurmas().forEach(turma => {
-            const opt = document.createElement('option');
-            opt.value = turma;
-            opt.textContent = turma;
-            selectTurma.appendChild(opt);
-        });
-
-        // Selects para notas (filtrados por turma)
-        const turmaSelecionada = selectTurma.value;
-        const selectAluno = document.getElementById('selectAluno');
-        selectAluno.innerHTML = '<option value="">Selecione o Aluno</option>';
-        alunos.filter(a => a.turma === turmaSelecionada).forEach(a => {
-            const opt = document.createElement('option');
-            opt.value = a.nome;
-            opt.textContent = a.nome;
-            selectAluno.appendChild(opt);
-        });
-
-        const selectDisciplina = document.getElementById('selectDisciplina');
-        selectDisciplina.innerHTML = '<option value="">Selecione a Disciplina</option>';
-        disciplinas.filter(d => d.turma === turmaSelecionada).forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.nome;
-            opt.textContent = d.nome;
-            selectDisciplina.appendChild(opt);
-        });
-
-        // Select de atividades (filtra por disciplina e turma)
-        const disciplinaSelecionada = selectDisciplina.value;
-        const selectAtividade = document.getElementById('selectAtividade');
-        selectAtividade.innerHTML = '<option value="">Selecione a Atividade</option>';
-        atividades.filter(atv => {
-            return (!disciplinaSelecionada || atv.disciplina === disciplinaSelecionada) &&
-                   (!turmaSelecionada || disciplinas.find(d => d.nome === atv.disciplina && d.turma === turmaSelecionada));
-        }).forEach(atv => {
-            const opt = document.createElement('option');
-            opt.value = atv.nome;
-            opt.textContent = `${atv.nome} (${atv.data})`;
-            selectAtividade.appendChild(opt);
-        });
-
-        // Notas
-        const listaNotas = document.getElementById('listaNotas');
-        listaNotas.innerHTML = '';
-        notas.filter(n => n.turma === turmaSelecionada).forEach((n) => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${n.aluno} - ${n.disciplina} - ${n.atividade}: ${n.nota}`;
-            listaNotas.appendChild(li);
-        });
-    }
-
-    // Cadastro de disciplina
-    document.getElementById('formDisciplina').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nome = document.getElementById('disciplinaNome').value.trim();
-        const turma = document.getElementById('disciplinaTurma').value.trim();
-        if (nome && turma && !disciplinas.some(d => d.nome === nome && d.turma === turma)) {
-            disciplinas.push({ nome, turma });
-            document.getElementById('disciplinaNome').value = '';
-            document.getElementById('disciplinaTurma').value = '';
-            atualizarListas();
-            atualizarAtividadeDisciplina();
-        }
-    });
-
-    // Cadastro de aluno
-    document.getElementById('formAluno').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nome = document.getElementById('alunoNome').value.trim();
-        const turma = document.getElementById('alunoTurma').value.trim();
-        if (nome && turma && !alunos.some(a => a.nome === nome && a.turma === turma)) {
-            alunos.push({ nome, turma });
-            document.getElementById('alunoNome').value = '';
-            document.getElementById('alunoTurma').value = '';
-            atualizarListas();
-        }
-    });
-
-    // Cadastro de atividade
-    document.getElementById('formAtividade').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nome = document.getElementById('atividadeNome').value.trim();
-        const disciplina = document.getElementById('atividadeDisciplina').value;
-        const data = document.getElementById('atividadeData').value;
-        if (nome && disciplina && data) {
-            atividades.push({ nome, disciplina, data });
-            document.getElementById('atividadeNome').value = '';
-            document.getElementById('atividadeDisciplina').value = '';
-            document.getElementById('atividadeData').value = '';
-            atualizarListas();
-        }
-    });
-
-    // Atualiza select de disciplina em atividades
-    function atualizarAtividadeDisciplina() {
-        const atividadeDisciplina = document.getElementById('atividadeDisciplina');
-        atividadeDisciplina.innerHTML = '<option value="">Selecione a Disciplina</option>';
-        disciplinas.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.nome;
-            opt.textContent = `${d.nome} (${d.turma})`;
-            atividadeDisciplina.appendChild(opt);
-        });
-    }
-    atualizarAtividadeDisciplina();
-
-    // Atualiza selects ao mudar turma ou disciplina
-    document.getElementById('selectTurma').addEventListener('change', atualizarListas);
-    document.getElementById('selectDisciplina').addEventListener('change', atualizarListas);
-
-    // Lançar nota
-    document.getElementById('formNota').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const turma = document.getElementById('selectTurma').value;
-        const aluno = document.getElementById('selectAluno').value;
-        const disciplina = document.getElementById('selectDisciplina').value;
-        const atividade = document.getElementById('selectAtividade').value;
-        const nota = document.getElementById('notaValor').value;
-        if (turma && aluno && disciplina && atividade && nota !== '') {
-            notas.push({ turma, aluno, disciplina, atividade, nota });
-            document.getElementById('notaValor').value = '';
-            atualizarListas();
-        }
-    });
-
-    // Importação de alunos via XLS/XLSX
-    document.getElementById('inputImportAlunos').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const alunosImportados = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-            alunosImportados.forEach(row => {
-                const matricula = row[0];
-                const numero = row[1];
-                const nome = row[2];
-                const turma = row[3] || '';
-                if (
-                    matricula && numero && nome && turma &&
-                    !alunos.some(a => a.matricula === matricula && a.turma === turma) &&
-                    nome !== "Nome"
-                ) {
-                    alunos.push({ matricula, numero, nome, turma });
+        // Carregar dados do professor
+        async function loadTeacherData() {
+            try {
+                const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+                teacherData = await firebaseManager.getTeacherData(userId);
+                
+                if (teacherData) {
+                    updateDashboard();
+                    updateSubjectsList();
+                    updateTurmaSelects();
+                    updatePendingGrades();
+                } else {
+                    // Criar dados iniciais se não existirem
+                    await firebaseManager.createInitialTeacherData(userId);
+                    teacherData = await firebaseManager.getTeacherData(userId);
+                    updateDashboard();
+                    updateSubjectsList();
+                    updateTurmaSelects();
+                    updatePendingGrades();
                 }
-            });
-            atualizarListas();
-            document.getElementById('inputImportAlunos').value = '';
-            alert('Alunos importados com sucesso!\nAtenção: a planilha deve ter matrícula na primeira coluna, número na segunda, nome completo na terceira e turma na quarta.');
-        };
-        reader.readAsArrayBuffer(file);
-    });
+                
+                // Atualizar nome do professor
+                document.getElementById('teacherName').textContent = currentUser.name || currentUser.email;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showError('Erro ao conectar com o servidor');
+            }
+        }
 
-    // Inicializa listas
-    atualizarListas();
+        // Atualizar dashboard
+        function updateDashboard() {
+            if (!teacherData || !teacherData.profile) return;
+            
+            const profile = teacherData.profile;
+            document.getElementById('subjectsCount').textContent = profile.subjects || '0';
+            document.getElementById('studentsCount').textContent = profile.totalStudents || '0';
+            document.getElementById('gradesToReview').textContent = profile.gradesToReview || '0';
+            document.getElementById('classAverage').textContent = profile.classAverage || '0.0';
+        }
+
+        // Atualizar lista de disciplinas
+        function updateSubjectsList() {
+            if (!teacherData || !teacherData.subjects) return;
+            
+            const container = document.getElementById('disciplinasList');
+            container.innerHTML = '';
+            
+            teacherData.subjects.forEach(subject => {
+                const div = document.createElement('div');
+                div.className = 'card mb-2';
+                div.innerHTML = `
+                    <div class="card-body p-3">
+                        <h6 class="card-title mb-1">${subject.name}</h6>
+                        <small class="text-muted">Turma: ${subject.class} | Alunos: ${subject.students}</small>
+                        <br>
+                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="removeSubject('${subject.id}')">
+                            <i class="fas fa-trash me-1"></i>Remover
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Atualizar selects de turma
+        function updateTurmaSelects() {
+            if (!teacherData || !teacherData.subjects) return;
+            
+            const turmas = [...new Set(teacherData.subjects.map(s => s.class))];
+            
+            // Select para visualizar alunos
+            const selectTurmaAlunos = document.getElementById('selectTurmaAlunos');
+            selectTurmaAlunos.innerHTML = '<option value="">Selecione uma Turma</option>';
+            turmas.forEach(turma => {
+                const option = document.createElement('option');
+                option.value = turma;
+                option.textContent = turma;
+                selectTurmaAlunos.appendChild(option);
+            });
+
+            // Select para lançar notas
+            const selectTurmaNota = document.getElementById('selectTurmaNota');
+            selectTurmaNota.innerHTML = '<option value="">Selecione a Turma</option>';
+            turmas.forEach(turma => {
+                const option = document.createElement('option');
+                option.value = turma;
+                option.textContent = turma;
+                selectTurmaNota.appendChild(option);
+            });
+
+            // Select de disciplinas para notas
+            const selectDisciplinaNota = document.getElementById('selectDisciplinaNota');
+            selectDisciplinaNota.innerHTML = '<option value="">Selecione a Disciplina</option>';
+            teacherData.subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                selectDisciplinaNota.appendChild(option);
+            });
+        }
+
+        // Carregar alunos por turma
+        function loadStudentsByClass() {
+            const selectedClass = document.getElementById('selectTurmaAlunos').value;
+            const container = document.getElementById('studentsList');
+            
+            if (!selectedClass || !teacherData || !teacherData.students || !teacherData.students[selectedClass]) {
+                container.innerHTML = '<p class="text-muted">Selecione uma turma para ver os alunos</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            teacherData.students[selectedClass].forEach(student => {
+                const div = document.createElement('div');
+                div.className = 'card mb-2';
+                div.innerHTML = `
+                    <div class="card-body p-3">
+                        <h6 class="card-title mb-1">${student.name}</h6>
+                        <small class="text-muted">Média: ${student.avgGrade} | Status: ${student.status}</small>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Atualizar opções de alunos baseado na turma selecionada
+        function updateStudentOptions() {
+            const selectedClass = document.getElementById('selectTurmaNota').value;
+            const selectAluno = document.getElementById('selectAlunoNota');
+            
+            selectAluno.innerHTML = '<option value="">Selecione o Aluno</option>';
+            
+            if (selectedClass && teacherData && teacherData.students && teacherData.students[selectedClass]) {
+                teacherData.students[selectedClass].forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.id;
+                    option.textContent = student.name;
+                    selectAluno.appendChild(option);
+                });
+            }
+        }
+
+        // Atualizar lista de notas pendentes
+        function updatePendingGrades() {
+            if (!teacherData || !teacherData.pendingGrades) return;
+            
+            const container = document.getElementById('pendingGradesList');
+            container.innerHTML = '';
+            
+            if (teacherData.pendingGrades.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhuma nota pendente para revisão</p>';
+                return;
+            }
+            
+            teacherData.pendingGrades.forEach((grade, index) => {
+                const div = document.createElement('div');
+                div.className = 'card mb-2';
+                div.innerHTML = `
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title mb-1">${grade.studentName}</h6>
+                                <small class="text-muted">${grade.subject} - ${grade.activity}</small>
+                                <br>
+                                <small class="text-muted">Data: ${formatDate(grade.date)}</small>
+                            </div>
+                            <button class="btn btn-sm btn-success" onclick="markAsReviewed(${index})">
+                                <i class="fas fa-check me-1"></i>Revisar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Adicionar nova disciplina
+        document.getElementById('formDisciplina').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('disciplinaNome').value.trim();
+            const turma = document.getElementById('disciplinaTurma').value.trim();
+            const alunos = parseInt(document.getElementById('disciplinaAlunos').value);
+            
+            if (!nome || !turma || !alunos) return;
+            
+            try {
+                const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+                const newSubject = {
+                    id: nome.toLowerCase().replace(/\s+/g, '_'),
+                    name: nome,
+                    class: turma,
+                    students: alunos
+                };
+                
+                // Adicionar à lista local
+                if (!teacherData.subjects) teacherData.subjects = [];
+                teacherData.subjects.push(newSubject);
+                
+                // Salvar no Firebase
+                await database.ref(`teachers/${userId}/subjects`).set(teacherData.subjects);
+                
+                // Atualizar UI
+                updateSubjectsList();
+                updateTurmaSelects();
+                updateDashboard();
+                
+                // Limpar formulário
+                document.getElementById('formDisciplina').reset();
+                
+                showSuccess('Disciplina adicionada com sucesso!');
+            } catch (error) {
+                console.error('Erro ao adicionar disciplina:', error);
+                showError('Erro ao adicionar disciplina');
+            }
+        });
+
+        // Lançar nota
+        document.getElementById('formNota').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const turma = document.getElementById('selectTurmaNota').value;
+            const studentId = document.getElementById('selectAlunoNota').value;
+            const subjectId = document.getElementById('selectDisciplinaNota').value;
+            const bimestre = document.getElementById('selectBimestre').value;
+            const nota = parseFloat(document.getElementById('notaValor').value);
+            
+            if (!turma || !studentId || !subjectId || !bimestre || isNaN(nota)) return;
+            
+            try {
+                // Atualizar nota no Firebase (simulação - em produção, você teria uma estrutura real de notas)
+                const result = await firebaseManager.updateStudentGrade(studentId, subjectId, bimestre, nota);
+                
+                if (result.success) {
+                    showSuccess('Nota lançada com sucesso!');
+                    document.getElementById('formNota').reset();
+                    updateStudentOptions();
+                } else {
+                    showError(result.message || 'Erro ao lançar nota');
+                }
+            } catch (error) {
+                console.error('Erro ao lançar nota:', error);
+                showError('Erro ao lançar nota');
+            }
+        });
+
+        // Remover disciplina
+        async function removeSubject(subjectId) {
+            if (!confirm('Tem certeza que deseja remover esta disciplina?')) return;
+            
+            try {
+                const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+                
+                // Remover da lista local
+                teacherData.subjects = teacherData.subjects.filter(s => s.id !== subjectId);
+                
+                // Salvar no Firebase
+                await database.ref(`teachers/${userId}/subjects`).set(teacherData.subjects);
+                
+                // Atualizar UI
+                updateSubjectsList();
+                updateTurmaSelects();
+                updateDashboard();
+                
+                showSuccess('Disciplina removida com sucesso!');
+            } catch (error) {
+                console.error('Erro ao remover disciplina:', error);
+                showError('Erro ao remover disciplina');
+            }
+        }
+
+        // Marcar nota como revisada
+        async function markAsReviewed(index) {
+            try {
+                const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+                
+                // Remover da lista de pendentes
+                teacherData.pendingGrades.splice(index, 1);
+                
+                // Salvar no Firebase
+                await database.ref(`teachers/${userId}/pendingGrades`).set(teacherData.pendingGrades);
+                
+                // Atualizar profile
+                teacherData.profile.gradesToReview = teacherData.pendingGrades.length;
+                await database.ref(`teachers/${userId}/profile/gradesToReview`).set(teacherData.profile.gradesToReview);
+                
+                // Atualizar UI
+                updatePendingGrades();
+                updateDashboard();
+                
+                showSuccess('Nota marcada como revisada!');
+            } catch (error) {
+                console.error('Erro ao marcar como revisada:', error);
+                showError('Erro ao marcar como revisada');
+            }
+        }
+
+        // Funções auxiliares
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                firebaseManager.logout();
+            }
+        }
+
+        function showSuccess(message) {
+            showAlert('Sucesso', message, 'success');
+        }
+
+        function showError(message) {
+            showAlert('Erro', message, 'error');
+        }
+
+        function showAlert(title, message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            alertDiv.innerHTML = `
+                <strong>${title}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
     </script>
 </body>
 </html>
+
