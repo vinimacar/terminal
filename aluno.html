@@ -32,87 +32,296 @@
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="section-title text-center"><i class="fas fa-user-graduate me-2"></i>Terminal do Aluno</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="section-title"><i class="fas fa-user-graduate me-2"></i>Terminal do Aluno</h1>
+            <div>
+                <span class="badge bg-primary me-2" id="studentName">Carregando...</span>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard do Aluno -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="fas fa-chart-line fa-2x mb-2"></i>
+                    <h3 id="avgGrade">0.0</h3>
+                    <p class="mb-0">Média Geral</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    <i class="fas fa-book fa-2x mb-2"></i>
+                    <h3 id="totalSubjects">0</h3>
+                    <p class="mb-0">Disciplinas</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                    <i class="fas fa-tasks fa-2x mb-2"></i>
+                    <h3 id="pendingTasks">0</h3>
+                    <p class="mb-0">Atividades Pendentes</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="glass-card text-center p-3" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+                    <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                    <h3 id="attendance">0%</h3>
+                    <p class="mb-0">Frequência</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disciplinas e Notas -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <h4 class="mb-4"><i class="fas fa-book-open me-2"></i>Minhas Disciplinas e Notas</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Disciplina</th>
+                                    <th>1º Bim</th>
+                                    <th>2º Bim</th>
+                                    <th>3º Bim</th>
+                                    <th>4º Bim</th>
+                                    <th>Média</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTable">
+                                <!-- Dados carregados dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card">
+                    <h4 class="mb-4"><i class="fas fa-star me-2"></i>Desempenho</h4>
+                    <div id="subjectPerformance">
+                        <!-- Dados carregados dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividades -->
         <div class="glass-card">
-            <h4 class="mb-4"><i class="fas fa-book-open me-2"></i>Minhas Disciplinas</h4>
-            <ul id="listaDisciplinas" class="list-group mb-4"></ul>
-            <h4 class="mb-4"><i class="fas fa-tasks me-2"></i>Minhas Atividades</h4>
-            <ul id="listaAtividades" class="list-group mb-4"></ul>
-            <h4 class="mb-4"><i class="fas fa-star me-2"></i>Minhas Notas</h4>
-            <ul id="listaNotas" class="list-group"></ul>
+            <h4 class="mb-4"><i class="fas fa-tasks me-2"></i>Próximas Atividades</h4>
+            <div id="activitiesList">
+                <!-- Dados carregados dinamicamente -->
+            </div>
         </div>
     </div>
-    <script>
-    // Simulação de dados locais (substitua por integração real se desejar)
-    // O ideal é carregar os dados do aluno via backend ou localStorage
-    // Exemplo de estrutura:
-    const alunoNome = "Aluno Exemplo";
-    const turma = "1A";
-    const disciplinas = [
-        { nome: "Matemática", turma: "1A" },
-        { nome: "História", turma: "1A" }
-    ];
-    const atividades = [
-        { nome: "Prova 1", disciplina: "Matemática", data: "2025-07-10" },
-        { nome: "Trabalho", disciplina: "História", data: "2025-07-15" }
-    ];
-    const notas = [
-        { disciplina: "Matemática", atividade: "Prova 1", nota: 8.5 },
-        { disciplina: "História", atividade: "Trabalho", nota: 9.0 }
-    ];
 
-    // Preenche listas
-    function preencherListas() {
-        // Disciplinas
-        const listaDisciplinas = document.getElementById('listaDisciplinas');
-        listaDisciplinas.innerHTML = '';
-        disciplinas.forEach(d => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${d.nome} (${d.turma})`;
-            listaDisciplinas.appendChild(li);
-        });
-
-        // Atividades
-        const listaAtividades = document.getElementById('listaAtividades');
-        listaAtividades.innerHTML = '';
-        atividades.forEach(a => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${a.nome} - ${a.disciplina} (${a.data})`;
-            listaAtividades.appendChild(li);
-        });
-
-        // Notas
-        const listaNotas = document.getElementById('listaNotas');
-        listaNotas.innerHTML = '';
-        notas.forEach(n => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = `${n.atividade} - ${n.disciplina}: ${n.nota}`;
-            listaNotas.appendChild(li);
-        });
-    }
-
-    preencherListas();
-    </script>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
     <script>
-      // Configuração do Firebase
-      const firebaseConfig = {
-        apiKey: "SUA_API_KEY",
-        authDomain: "SEU_AUTH_DOMAIN",
-        databaseURL: "SUA_DATABASE_URL",
-        projectId: "SEU_PROJECT_ID",
-        storageBucket: "SEU_STORAGE_BUCKET",
-        messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-        appId: "SEU_APP_ID"
-      };
+        let currentUser = null;
+        let studentData = null;
 
-      // Inicializar Firebase
-      firebase.initializeApp(firebaseConfig);
-      const database = firebase.database();
+        // Verificar autenticação ao carregar a página
+        window.addEventListener('load', async () => {
+            currentUser = firebaseManager.getCurrentUser();
+            
+            if (!currentUser || currentUser.type !== 'student') {
+                alert('Acesso negado. Redirecionando para login.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadStudentData();
+        });
+
+        // Carregar dados do estudante
+        async function loadStudentData() {
+            try {
+                const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+                studentData = await firebaseManager.getStudentData(userId);
+                
+                if (studentData) {
+                    updateDashboard();
+                    updateGradesTable();
+                    updateSubjectPerformance();
+                    updateActivitiesList();
+                } else {
+                    showError('Erro ao carregar dados do estudante');
+                }
+                
+                // Atualizar nome do estudante
+                document.getElementById('studentName').textContent = currentUser.name || currentUser.email;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showError('Erro ao conectar com o servidor');
+            }
+        }
+
+        // Atualizar dashboard
+        function updateDashboard() {
+            if (!studentData || !studentData.profile) return;
+            
+            const profile = studentData.profile;
+            document.getElementById('avgGrade').textContent = profile.avgGrade || '0.0';
+            document.getElementById('totalSubjects').textContent = profile.totalSubjects || '0';
+            document.getElementById('pendingTasks').textContent = profile.pendingTasks || '0';
+            document.getElementById('attendance').textContent = (profile.attendance || 0) + '%';
+        }
+
+        // Atualizar tabela de notas
+        function updateGradesTable() {
+            if (!studentData || !studentData.grades) return;
+            
+            const tbody = document.getElementById('gradesTable');
+            tbody.innerHTML = '';
+            
+            Object.entries(studentData.grades).forEach(([subject, grades]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${getSubjectName(subject)}</strong></td>
+                    <td>${grades.bim1 || '-'}</td>
+                    <td>${grades.bim2 || '-'}</td>
+                    <td>${grades.bim3 || '-'}</td>
+                    <td>${grades.bim4 || '-'}</td>
+                    <td><span class="badge ${getGradeBadgeClass(grades.final)}">${grades.final || '-'}</span></td>
+                    <td><span class="badge ${getStatusBadgeClass(grades.status)}">${grades.status || 'Pendente'}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Atualizar desempenho por matéria
+        function updateSubjectPerformance() {
+            if (!studentData || !studentData.subjects) return;
+            
+            const container = document.getElementById('subjectPerformance');
+            container.innerHTML = '';
+            
+            Object.entries(studentData.subjects).forEach(([subject, data]) => {
+                const div = document.createElement('div');
+                div.className = 'd-flex justify-content-between align-items-center mb-3';
+                div.innerHTML = `
+                    <span>${data.name}</span>
+                    <span class="badge ${getGradeBadgeClass(data.grade)}">${data.grade}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Atualizar lista de atividades
+        function updateActivitiesList() {
+            if (!studentData || !studentData.activities) return;
+            
+            const container = document.getElementById('activitiesList');
+            container.innerHTML = '';
+            
+            // Combinar todas as atividades
+            const allActivities = [];
+            Object.entries(studentData.activities).forEach(([priority, activities]) => {
+                if (Array.isArray(activities)) {
+                    allActivities.push(...activities);
+                } else {
+                    Object.values(activities).forEach(activity => {
+                        allActivities.push(activity);
+                    });
+                }
+            });
+            
+            // Ordenar por data
+            allActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            allActivities.forEach(activity => {
+                const activityDiv = document.createElement('div');
+                activityDiv.className = 'card mb-3';
+                activityDiv.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title mb-2">${activity.title}</h6>
+                                <p class="card-text text-muted mb-1">${activity.description}</p>
+                                <small class="text-${getPriorityColor(activity.priority)}">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${formatDate(activity.date)} ${activity.time ? 'às ' + activity.time : ''}
+                                </small>
+                            </div>
+                            <span class="badge bg-${getPriorityColor(activity.priority)}">${getPriorityLabel(activity.priority)}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(activityDiv);
+            });
+            
+            if (allActivities.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Nenhuma atividade pendente</p>';
+            }
+        }
+
+        // Funções auxiliares
+        function getSubjectName(subject) {
+            const subjects = {
+                matematica: 'Matemática',
+                portugues: 'Português',
+                historia: 'História',
+                fisica: 'Física',
+                quimica: 'Química'
+            };
+            return subjects[subject] || subject;
+        }
+
+        function getGradeBadgeClass(grade) {
+            if (grade >= 9) return 'bg-success';
+            if (grade >= 8) return 'bg-info';
+            if (grade >= 7) return 'bg-warning';
+            return 'bg-danger';
+        }
+
+        function getStatusBadgeClass(status) {
+            return status === 'Aprovado' ? 'bg-success' : status === 'Em recuperação' ? 'bg-warning' : 'bg-danger';
+        }
+
+        function getPriorityColor(priority) {
+            return priority === 'urgent' ? 'danger' : priority === 'normal' ? 'info' : 'success';
+        }
+
+        function getPriorityLabel(priority) {
+            return priority === 'urgent' ? 'Urgente' : priority === 'normal' ? 'Normal' : 'Baixa';
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            
+            if (date.toDateString() === today.toDateString()) return 'Hoje';
+            if (date.toDateString() === tomorrow.toDateString()) return 'Amanhã';
+            
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                firebaseManager.logout();
+            }
+        }
+
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <strong>Erro:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+        }
     </script>
 </body>
 </html>
