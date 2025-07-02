@@ -798,41 +798,317 @@
         </div>
     </div>
 
-    <!-- Adicione antes do fechamento do </body> -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
     <script>
-  // Configuração do Firebase
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_AUTH_DOMAIN",
-    databaseURL: "SUA_DATABASE_URL",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_STORAGE_BUCKET",
-    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-    appId: "SEU_APP_ID"
-  };
+        let currentUser = null;
+        let currentUserData = null;
 
-  // Inicializar Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-</script>
-    <script>
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const userType = document.getElementById('userType').value;
-    if (userType === 'teacher') {
-        window.location.href = 'professor.html';
-    } else if (userType === 'student') {
-        window.location.href = 'aluno.html';
-    } else {
-        // Caso queira manter o fluxo antigo para outros tipos
-        document.getElementById('loginSection').classList.add('section-hidden');
-        document.getElementById('mainApp').classList.remove('section-hidden');
-    }
-});
-</script>
+        // Verificar se usuário já está logado
+        window.addEventListener('load', async () => {
+            currentUser = firebaseManager.getCurrentUser();
+            if (currentUser) {
+                await loadUserData();
+                showMainApp();
+            }
+        });
+
+        // Função de login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const userType = document.getElementById('userType').value;
+            
+            // Mostrar loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entrando...';
+            submitBtn.disabled = true;
+
+            try {
+                const result = await firebaseManager.loginUser(email, password, userType);
+                
+                if (result.success) {
+                    currentUser = result.user;
+                    await loadUserData();
+                    
+                    // Redirecionar baseado no tipo de usuário
+                    if (userType === 'teacher') {
+                        window.location.href = 'professor.html';
+                    } else if (userType === 'student') {
+                        window.location.href = 'aluno.html';
+                    } else {
+                        showMainApp();
+                    }
+                } else {
+                    showAlert('Erro', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                showAlert('Erro', 'Erro interno do servidor', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Função de registro
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const userType = document.getElementById('registerUserType').value;
+            
+            // Mostrar loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cadastrando...';
+            submitBtn.disabled = true;
+
+            try {
+                const result = await firebaseManager.registerUser(email, password, userType);
+                
+                if (result.success) {
+                    showAlert('Sucesso', result.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                    modal.hide();
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showAlert('Erro', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro no registro:', error);
+                showAlert('Erro', 'Erro interno do servidor', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Carregar dados do usuário
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            const userId = currentUser.email.replace(/[.#$[\]]/g, '_');
+            
+            if (currentUser.type === 'student') {
+                currentUserData = await firebaseManager.getStudentData(userId);
+                if (currentUserData) {
+                    updateStudentDashboard();
+                }
+            } else if (currentUser.type === 'teacher') {
+                currentUserData = await firebaseManager.getTeacherData(userId);
+                if (currentUserData) {
+                    updateTeacherDashboard();
+                }
+            }
+            
+            // Atualizar nome do usuário na navbar
+            document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+        }
+
+        // Mostrar aplicação principal
+        function showMainApp() {
+            document.getElementById('loginSection').classList.add('section-hidden');
+            document.getElementById('mainApp').classList.remove('section-hidden');
+            
+            // Mostrar/ocultar seções baseado no tipo de usuário
+            if (currentUser.type === 'teacher') {
+                document.querySelectorAll('.teacher-only').forEach(el => el.classList.remove('section-hidden'));
+                document.querySelectorAll('.student-only').forEach(el => el.classList.add('section-hidden'));
+                document.getElementById('studentDashboard').classList.add('section-hidden');
+                document.getElementById('teacherDashboard').classList.remove('section-hidden');
+            } else {
+                document.querySelectorAll('.student-only').forEach(el => el.classList.remove('section-hidden'));
+                document.querySelectorAll('.teacher-only').forEach(el => el.classList.add('section-hidden'));
+                document.getElementById('teacherDashboard').classList.add('section-hidden');
+                document.getElementById('studentDashboard').classList.remove('section-hidden');
+            }
+        }
+
+        // Atualizar dashboard do estudante
+        function updateStudentDashboard() {
+            if (!currentUserData || !currentUserData.profile) return;
+            
+            const profile = currentUserData.profile;
+            document.getElementById('avgGrade').textContent = profile.avgGrade || '0.0';
+            document.getElementById('totalSubjects').textContent = profile.totalSubjects || '0';
+            document.getElementById('pendingTasks').textContent = profile.pendingTasks || '0';
+            
+            // Atualizar tabela de notas
+            updateGradesTable();
+            
+            // Atualizar atividades
+            updateActivitiesList();
+        }
+
+        // Atualizar dashboard do professor
+        function updateTeacherDashboard() {
+            if (!currentUserData || !currentUserData.profile) return;
+            
+            const profile = currentUserData.profile;
+            document.getElementById('teacherSubjects').textContent = profile.subjects || '0';
+            document.getElementById('totalStudents').textContent = profile.totalStudents || '0';
+            document.getElementById('gradesToReview').textContent = profile.gradesToReview || '0';
+        }
+
+        // Atualizar tabela de notas
+        function updateGradesTable() {
+            if (!currentUserData || !currentUserData.grades) return;
+            
+            const tbody = document.getElementById('gradesTable');
+            tbody.innerHTML = '';
+            
+            Object.entries(currentUserData.grades).forEach(([subject, grades]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${getSubjectName(subject)}</strong></td>
+                    <td>${grades.bim1 || '-'}</td>
+                    <td>${grades.bim2 || '-'}</td>
+                    <td>${grades.bim3 || '-'}</td>
+                    <td>${grades.bim4 || '-'}</td>
+                    <td><span class="grade-badge ${getGradeClass(grades.final)}">${grades.final || '-'}</span></td>
+                    <td><span class="badge ${getStatusClass(grades.status)}">${grades.status || 'Pendente'}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Atualizar lista de atividades
+        function updateActivitiesList() {
+            if (!currentUserData || !currentUserData.activities) return;
+            
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = '';
+            
+            // Combinar todas as atividades
+            const allActivities = [];
+            Object.entries(currentUserData.activities).forEach(([priority, activities]) => {
+                if (Array.isArray(activities)) {
+                    allActivities.push(...activities);
+                } else {
+                    Object.values(activities).forEach(activity => {
+                        allActivities.push(activity);
+                    });
+                }
+            });
+            
+            // Ordenar por data
+            allActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Mostrar apenas as próximas 3 atividades
+            allActivities.slice(0, 3).forEach(activity => {
+                const activityDiv = document.createElement('div');
+                activityDiv.className = `activity-item activity-${activity.priority}`;
+                activityDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-2">${activity.title}</h6>
+                            <p class="text-muted mb-1">${activity.description}</p>
+                            <small class="text-${getPriorityColor(activity.priority)}">
+                                <i class="fas fa-clock me-1"></i>
+                                ${formatDate(activity.date)} ${activity.time ? 'às ' + activity.time : ''}
+                            </small>
+                        </div>
+                        <span class="badge bg-${getPriorityColor(activity.priority)}">${getPriorityLabel(activity.priority)}</span>
+                    </div>
+                `;
+                container.appendChild(activityDiv);
+            });
+        }
+
+        // Funções auxiliares
+        function getSubjectName(subject) {
+            const subjects = {
+                matematica: 'Matemática',
+                portugues: 'Português',
+                historia: 'História',
+                fisica: 'Física',
+                quimica: 'Química'
+            };
+            return subjects[subject] || subject;
+        }
+
+        function getGradeClass(grade) {
+            if (grade >= 9) return 'grade-excellent';
+            if (grade >= 8) return 'grade-good';
+            if (grade >= 7) return 'grade-average';
+            return 'grade-poor';
+        }
+
+        function getStatusClass(status) {
+            return status === 'Aprovado' ? 'bg-success' : status === 'Em recuperação' ? 'bg-warning' : 'bg-danger';
+        }
+
+        function getPriorityColor(priority) {
+            return priority === 'urgent' ? 'danger' : priority === 'normal' ? 'info' : 'success';
+        }
+
+        function getPriorityLabel(priority) {
+            return priority === 'urgent' ? 'Urgente' : priority === 'normal' ? 'Normal' : 'Baixa';
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            
+            if (date.toDateString() === today.toDateString()) return 'Hoje';
+            if (date.toDateString() === tomorrow.toDateString()) return 'Amanhã';
+            
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Navegação entre seções
+        function showSection(sectionName) {
+            document.querySelectorAll('.container-fluid[id$="Section"]').forEach(section => {
+                section.classList.add('section-hidden');
+            });
+            
+            document.getElementById(sectionName + 'Section').classList.remove('section-hidden');
+            
+            // Atualizar links de navegação
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                firebaseManager.logout();
+            }
+        }
+
+        // Função para mostrar alertas
+        function showAlert(title, message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            alertDiv.innerHTML = `
+                <strong>${title}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
 </body>
 </html>
+
 
