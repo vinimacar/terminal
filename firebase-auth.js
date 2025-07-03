@@ -1,4 +1,3 @@
-
 // Exemplo prático de como usar Firebase Auth v9+ (modular)
 // Este arquivo demonstra como implementar signInWithEmailAndPassword
 
@@ -268,3 +267,4 @@ window.FirebaseAuthManager = FirebaseAuthManager;
 //       alert('Erro: ' + result.message);
 //     }
 //   });
+
