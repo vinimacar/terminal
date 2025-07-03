@@ -1,52 +1,77 @@
-// Exemplo prático de como usar Firebase Auth v9+ (modular)
-// Este arquivo demonstra como implementar signInWithEmailAndPassword
+// firebase-auth-manager.js
 
-// Imports necessários (já disponíveis no firebase-config-v9.js)
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  signOut
+} from "firebase/auth";
 
-// Usar as instâncias já criadas no firebase-config-v9.js
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  child
+} from "firebase/database";
+
 import { auth, database } from './firebase-config-v9.js';
 
-// Classe para gerenciar autenticação Firebase
 class FirebaseAuthManager {
-  
-  // Login com Firebase Auth
+
+  constructor() {
+    this.auth = auth;
+    this.database = database;
+
+    // Detectar usuário logado automaticamente
+    onAuthStateChanged(this.auth, (user) => {
+      if (user) {
+        console.log('👤 Sessão ativa:', user.email);
+      } else {
+        console.log('🔒 Nenhum usuário logado');
+      }
+    });
+  }
+
+  // Login com persistência local
   async loginWithFirebaseAuth(email, password) {
     try {
-      console.log('🔐 Fazendo login com Firebase Auth...');
-      
-      // Autenticação real com Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('🔐 Efetuando login...');
+
+      // Mantém o usuário logado mesmo ao fechar o navegador
+      await setPersistence(this.auth, browserLocalPersistence);
+
+      // Autenticar
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       const user = userCredential.user;
-      
-      console.log("✅ Usuário autenticado:", user);
-      console.log("UID do usuário:", user.uid);
-      console.log("Email:", user.email);
-      
-      // Agora gravar/ler dados do usuário no Realtime Database
+
+      console.log("✅ Login OK:", user.uid);
+
+      // Gravar dados básicos no DB
       await this.saveUserData(user.uid, user.email);
-      
-      // Buscar dados específicos do usuário
+
+      // Buscar perfil completo
       const userData = await this.getUserProfileData(user.uid);
-      
+
       // Salvar na sessão local
       localStorage.setItem('currentUser', JSON.stringify({
         uid: user.uid,
         email: user.email,
         ...userData
       }));
-      
-      return { 
-        success: true, 
-        user: user, 
-        userData: userData 
+
+      return {
+        success: true,
+        user,
+        userData
       };
-      
+
     } catch (error) {
-      console.error('❌ Erro no login:', error);
-      
-      // Tratar diferentes tipos de erro
+      console.error('❌ Erro no login:', error.code);
+
       let errorMessage = 'Erro desconhecido';
       switch (error.code) {
         case 'auth/user-not-found':
@@ -59,31 +84,29 @@ class FirebaseAuthManager {
           errorMessage = 'Email inválido';
           break;
         case 'auth/too-many-requests':
-          errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+          errorMessage = 'Muitas tentativas. Tente mais tarde';
           break;
         default:
           errorMessage = error.message;
       }
-      
-      return { 
-        success: false, 
-        message: errorMessage 
+
+      return {
+        success: false,
+        message: errorMessage
       };
     }
   }
-  
-  // Registrar novo usuário com Firebase Auth
+
+  // Registro de novo usuário
   async registerWithFirebaseAuth(email, password, userType = 'student', additionalData = {}) {
     try {
-      console.log('📝 Registrando usuário com Firebase Auth...');
-      
-      // Criar usuário no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('📝 Registrando novo usuário...');
+
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       const user = userCredential.user;
-      
-      console.log("✅ Usuário criado:", user);
-      
-      // Dados completos do usuário para salvar no database
+
+      console.log("✅ Registro OK:", user.uid);
+
       const userData = {
         email: user.email,
         type: userType,
@@ -92,30 +115,28 @@ class FirebaseAuthManager {
         lastLogin: new Date().toISOString(),
         ...additionalData
       };
-      
-      // Salvar dados do usuário no Realtime Database
+
       await this.saveUserData(user.uid, user.email, userData);
-      
-      // Criar dados iniciais baseado no tipo
+
       if (userType === 'student') {
         await this.createInitialStudentData(user.uid);
       } else if (userType === 'teacher') {
         await this.createInitialTeacherData(user.uid);
       }
-      
-      return { 
-        success: true, 
-        user: user,
-        message: 'Usuário registrado com sucesso!' 
+
+      return {
+        success: true,
+        user,
+        message: 'Usuário registrado com sucesso!'
       };
-      
+
     } catch (error) {
-      console.error('❌ Erro no registro:', error);
-      
+      console.error('❌ Erro ao registrar:', error.code);
+
       let errorMessage = 'Erro desconhecido';
       switch (error.code) {
         case 'auth/email-already-in-use':
-          errorMessage = 'Este email já está em uso';
+          errorMessage = 'Email já está em uso';
           break;
         case 'auth/weak-password':
           errorMessage = 'Senha muito fraca (mínimo 6 caracteres)';
@@ -126,15 +147,15 @@ class FirebaseAuthManager {
         default:
           errorMessage = error.message;
       }
-      
-      return { 
-        success: false, 
-        message: errorMessage 
+
+      return {
+        success: false,
+        message: errorMessage
       };
     }
   }
-  
-  // Salvar dados do usuário no Realtime Database
+
+  // Salvar ou atualizar dados do usuário
   async saveUserData(uid, email, additionalData = {}) {
     try {
       const userData = {
@@ -142,54 +163,47 @@ class FirebaseAuthManager {
         lastLogin: new Date().toISOString(),
         ...additionalData
       };
-      
-      // Gravar na tabela principal de usuários
-      await set(ref(database, 'usuarios/' + uid), userData);
-      
-      console.log('💾 Dados do usuário salvos no database');
-      
+
+      await set(ref(this.database, 'usuarios/' + uid), userData);
+
+      console.log('💾 Dados do usuário salvos com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao salvar dados:', error);
+      console.error('❌ Erro ao salvar dados do usuário:', error);
       throw error;
     }
   }
-  
-  // Buscar dados do perfil do usuário
+
+  // Buscar perfil completo
   async getUserProfileData(uid) {
     try {
-      const dbRef = ref(database);
-      
-      // Buscar em diferentes locais baseado no tipo de usuário
+      const dbRef = ref(this.database);
       let userData = null;
-      
-      // Primeiro, verificar na tabela de usuários
+
       const userSnapshot = await get(child(dbRef, `usuarios/${uid}`));
       if (userSnapshot.exists()) {
         userData = userSnapshot.val();
       }
-      
-      // Buscar dados específicos baseado no tipo
-      if (userData && userData.type === 'student') {
+
+      if (userData?.type === 'student') {
         const studentSnapshot = await get(child(dbRef, `students/${uid}`));
         if (studentSnapshot.exists()) {
           userData.studentData = studentSnapshot.val();
         }
-      } else if (userData && userData.type === 'teacher') {
+      } else if (userData?.type === 'teacher') {
         const teacherSnapshot = await get(child(dbRef, `teachers/${uid}`));
         if (teacherSnapshot.exists()) {
           userData.teacherData = teacherSnapshot.val();
         }
       }
-      
+
       return userData;
-      
+
     } catch (error) {
-      console.error('❌ Erro ao buscar dados do usuário:', error);
+      console.error('❌ Erro ao buscar perfil:', error);
       return null;
     }
   }
-  
-  // Criar dados iniciais para estudante (reutilizando do firebase-config-v9.js)
+
   async createInitialStudentData(uid) {
     const studentData = {
       profile: {
@@ -207,11 +221,10 @@ class FirebaseAuthManager {
       }
     };
 
-    await set(ref(database, `students/${uid}`), studentData);
-    console.log('📚 Dados iniciais de estudante criados');
+    await set(ref(this.database, `students/${uid}`), studentData);
+    console.log('📚 Perfil inicial do aluno criado');
   }
-  
-  // Criar dados iniciais para professor
+
   async createInitialTeacherData(uid) {
     const teacherData = {
       profile: {
@@ -225,46 +238,26 @@ class FirebaseAuthManager {
       pendingGrades: []
     };
 
-    await set(ref(database, `teachers/${uid}`), teacherData);
-    console.log('👨‍🏫 Dados iniciais de professor criados');
+    await set(ref(this.database, `teachers/${uid}`), teacherData);
+    console.log('👨‍🏫 Perfil inicial do professor criado');
   }
-  
-  // Logout
+
   async logout() {
     try {
-      await auth.signOut();
+      await signOut(this.auth);
       localStorage.removeItem('currentUser');
-      console.log('👋 Logout realizado');
+      console.log('👋 Logout realizado com sucesso');
       return { success: true };
     } catch (error) {
       console.error('❌ Erro no logout:', error);
       return { success: false, message: error.message };
     }
   }
-  
-  // Verificar se usuário está logado
+
   getCurrentUser() {
-    return auth.currentUser;
+    return this.auth.currentUser;
   }
 }
 
-// Exportar a classe
 export { FirebaseAuthManager };
-
-// Para compatibilidade global
 window.FirebaseAuthManager = FirebaseAuthManager;
-
-// Exemplo de uso prático:
-// const authManager = new FirebaseAuthManager();
-// 
-// authManager.loginWithFirebaseAuth('usuario@exemplo.com', 'senha123')
-//   .then(result => {
-//     if (result.success) {
-//       console.log('Login realizado:', result.user);
-//       // Redirecionar para página apropriada
-//       window.location.href = result.userData.type === 'student' ? 'aluno.html' : 'professor.html';
-//     } else {
-//       alert('Erro: ' + result.message);
-//     }
-//   });
-
